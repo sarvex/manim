@@ -70,7 +70,7 @@ def quaternion_mult(
         Returns a list of product of two quaternions.
     """
     if config.renderer == "opengl":
-        if len(quats) == 0:
+        if not quats:
             return [1, 0, 0, 0]
         result = quats[0]
         for next_quat in quats[1:]:
@@ -122,12 +122,11 @@ def quaternion_from_angle_axis(
     List[float]
         Gives back a quaternion from the angle and axis
     """
-    if config.renderer == "opengl":
-        if not axis_normalized:
-            axis = normalize(axis)
-        return [math.cos(angle / 2), *(math.sin(angle / 2) * axis)]
-    else:
+    if config.renderer != "opengl":
         return np.append(np.cos(angle / 2), np.sin(angle / 2) * normalize(axis))
+    if not axis_normalized:
+        axis = normalize(axis)
+    return [math.cos(angle / 2), *(math.sin(angle / 2) * axis)]
 
 
 def angle_axis_from_quaternion(quaternion: Sequence[float]) -> Sequence[float]:
@@ -256,10 +255,9 @@ def rotation_matrix(
     ).as_matrix()
     if not homogeneous:
         return inhomogeneous_rotation_matrix
-    else:
-        rotation_matrix = np.eye(4)
-        rotation_matrix[:3, :3] = inhomogeneous_rotation_matrix
-        return rotation_matrix
+    rotation_matrix = np.eye(4)
+    rotation_matrix[:3, :3] = inhomogeneous_rotation_matrix
+    return rotation_matrix
 
 
 def rotation_about_z(angle: float) -> np.ndarray:
@@ -342,10 +340,7 @@ def angle_between_vectors(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
 
 def normalize(vect: np.ndarray | tuple[float], fall_back=None) -> np.ndarray:
     norm = np.linalg.norm(vect)
-    if norm > 0:
-        return np.array(vect) / norm
-    else:
-        return fall_back or np.zeros(len(vect))
+    return np.array(vect) / norm if norm > 0 else fall_back or np.zeros(len(vect))
 
 
 def normalize_along_axis(array: np.ndarray, axis: np.ndarray) -> np.ndarray:
@@ -394,9 +389,7 @@ def get_unit_normal(v1: np.ndarray, v2: np.ndarray, tol: float = 1e-6) -> np.nda
         # Vectors align, so find a normal to them in the plane shared with the z-axis
         cp = np.cross(np.cross(v1, OUT), v1)
         cp_norm = np.linalg.norm(cp)
-        if cp_norm < tol:
-            return DOWN
-    return normalize(cp)
+    return DOWN if cp_norm < tol else normalize(cp)
 
 
 ###
@@ -447,11 +440,7 @@ def regular_vertices(
     """
 
     if start_angle is None:
-        if n % 2 == 0:
-            start_angle = 0
-        else:
-            start_angle = TAU / 4
-
+        start_angle = 0 if n % 2 == 0 else TAU / 4
     start_vector = rotate_vector(RIGHT * radius, start_angle)
     vertices = compass_directions(n, start_vector)
 

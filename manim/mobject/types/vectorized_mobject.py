@@ -409,11 +409,7 @@ class VMobject(Mobject):
 
     def get_stroke_rgbas(self, background=False):
         try:
-            if background:
-                rgbas = self.background_stroke_rgbas
-            else:
-                rgbas = self.stroke_rgbas
-            return rgbas
+            return self.background_stroke_rgbas if background else self.stroke_rgbas
         except AttributeError:
             return np.zeros((1, 4))
 
@@ -555,14 +551,13 @@ class VMobject(Mobject):
     def get_gradient_start_and_end_points(self):
         if self.shade_in_3d:
             return get_3d_vmob_gradient_start_and_end_points(self)
-        else:
-            direction = self.get_sheen_direction()
-            c = self.get_center()
-            bases = np.array(
-                [self.get_edge_center(vect) - c for vect in [RIGHT, UP, OUT]],
-            ).transpose()
-            offset = np.dot(bases, direction)
-            return (c - offset, c + offset)
+        direction = self.get_sheen_direction()
+        c = self.get_center()
+        bases = np.array(
+            [self.get_edge_center(vect) - c for vect in [RIGHT, UP, OUT]],
+        ).transpose()
+        offset = np.dot(bases, direction)
+        return (c - offset, c + offset)
 
     def color_using_background_image(self, background_image: Union[Image, str]):
         self.background_image = background_image
@@ -833,7 +828,7 @@ class VMobject(Mobject):
         :class:`VMobject`
             ``self``
         """
-        assert mode in ["jagged", "smooth"]
+        assert mode in {"jagged", "smooth"}
         nppcc = self.n_points_per_cubic_curve
         for submob in self.family_members_with_points():
             subpaths = submob.get_subpaths()
@@ -843,14 +838,14 @@ class VMobject(Mobject):
                 # This will retrieve the anchors of the subpath, by selecting every n element in the array subpath
                 # The append is needed as the last element is not reached when slicing with numpy.
                 anchors = np.append(subpath[::nppcc], subpath[-1:], 0)
-                if mode == "smooth":
-                    h1, h2 = get_smooth_handle_points(anchors)
-                elif mode == "jagged":
+                if mode == "jagged":
                     # The following will make the handles aligned with the anchors, thus making the bezier curve a segment
                     a1 = anchors[:-1]
                     a2 = anchors[1:]
                     h1 = interpolate(a1, a2, 1.0 / 3)
                     h2 = interpolate(a1, a2, 2.0 / 3)
+                elif mode == "smooth":
+                    h1, h2 = get_smooth_handle_points(anchors)
                 new_subpath = np.array(subpath)
                 new_subpath[1::nppcc] = h1
                 new_subpath[2::nppcc] = h2
@@ -953,9 +948,7 @@ class VMobject(Mobject):
         atol = self.tolerance_for_point_equality
         if abs(p0[0] - p1[0]) > atol + rtol * abs(p1[0]):
             return False
-        if abs(p0[1] - p1[1]) > atol + rtol * abs(p1[1]):
-            return False
-        return True
+        return abs(p0[1] - p1[1]) <= atol + rtol * abs(p1[1])
 
     # Information about line
     def get_cubic_bezier_tuples_from_points(self, points):
@@ -1105,9 +1098,7 @@ class VMobject(Mobject):
         curve = self.get_nth_curve_function(n)
         points = np.array([curve(a) for a in np.linspace(0, 1, sample_points)])
         diffs = points[1:] - points[:-1]
-        norms = np.apply_along_axis(np.linalg.norm, 1, diffs)
-
-        return norms
+        return np.apply_along_axis(np.linalg.norm, 1, diffs)
 
     def get_nth_curve_length(
         self,
@@ -1244,11 +1235,7 @@ class VMobject(Mobject):
 
         for curve, length in curves_and_lengths:
             if current_length + length >= target_length:
-                if length != 0:
-                    residue = (target_length - current_length) / length
-                else:
-                    residue = 0
-
+                residue = (target_length - current_length) / length if length != 0 else 0
                 return curve(residue)
 
             current_length += length
@@ -1305,9 +1292,7 @@ class VMobject(Mobject):
         else:
             raise ValueError(f"Point {point} does not lie on this curve.")
 
-        alpha = target_length / total_length
-
-        return alpha
+        return target_length / total_length
 
     def get_anchors_and_handles(self) -> typing.Iterable[np.ndarray]:
         """Returns anchors1, handles1, handles2, anchors2,
@@ -1468,10 +1453,7 @@ class VMobject(Mobject):
         :class:`VMobject`
             ``self``
         """
-        new_path_point = None
-        if self.has_new_path_started():
-            new_path_point = self.get_last_point()
-
+        new_path_point = self.get_last_point() if self.has_new_path_started() else None
         new_points = self.insert_n_curves_to_point_list(n, self.points)
         self.set_points(new_points)
 
@@ -1993,7 +1975,7 @@ class VDict(VMobject, metaclass=ConvertToOpenGL):
         self.add(mapping_or_iterable)
 
     def __repr__(self):
-        return __class__.__name__ + "(" + repr(self.submob_dict) + ")"
+        return f"{__class__.__name__}({repr(self.submob_dict)})"
 
     def add(self, mapping_or_iterable):
         """Adds the key-value pairs to the :class:`VDict` object.
@@ -2046,7 +2028,7 @@ class VDict(VMobject, metaclass=ConvertToOpenGL):
             my_dict.remove('square')
         """
         if key not in self.submob_dict:
-            raise KeyError("The given key '%s' is not present in the VDict" % str(key))
+            raise KeyError(f"The given key '{str(key)}' is not present in the VDict")
         super().remove(self.submob_dict[key])
         del self.submob_dict[key]
         return self
@@ -2070,8 +2052,7 @@ class VDict(VMobject, metaclass=ConvertToOpenGL):
 
            self.play(Create(my_dict['s']))
         """
-        submob = self.submob_dict[key]
-        return submob
+        return self.submob_dict[key]
 
     def __setitem__(self, key, value):
         """Override the [] operator for item assignment.
@@ -2169,8 +2150,7 @@ class VDict(VMobject, metaclass=ConvertToOpenGL):
             for submob in my_dict.get_all_submobjects():
                 self.play(Create(submob))
         """
-        submobjects = self.submob_dict.values()
-        return submobjects
+        return self.submob_dict.values()
 
     def add_key_value_pair(self, key, value):
         """A utility function used by :meth:`add` to add the key-value pair
@@ -2355,21 +2335,11 @@ class DashedVMobject(VMobject, metaclass=ConvertToOpenGL):
             if vmobject.is_closed():
                 void_len = (1 - r) / n
             else:
-                if n == 1:
-                    void_len = 1 - r
-                else:
-                    void_len = (1 - r) / (n - 1)
-
+                void_len = 1 - r if n == 1 else (1 - r) / (n - 1)
             period = dash_len + void_len
             phase_shift = (dash_offset % 1) * period
 
-            if vmobject.is_closed():
-                # closed curves have equal amount of dashes and voids
-                pattern_len = 1
-            else:
-                # open curves start and end with a dash, so the whole dash pattern with the last void is longer
-                pattern_len = 1 + void_len
-
+            pattern_len = 1 if vmobject.is_closed() else 1 + void_len
             dash_starts = [((i * period + phase_shift) % pattern_len) for i in range(n)]
             dash_ends = [
                 ((i * period + dash_len + phase_shift) % pattern_len) for i in range(n)

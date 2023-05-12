@@ -225,10 +225,7 @@ class Flash(AnimationGroup):
         run_time: float = 1.0,
         **kwargs
     ) -> None:
-        if isinstance(point, Mobject):
-            self.point = point.get_center()
-        else:
-            self.point = point
+        self.point = point.get_center() if isinstance(point, Mobject) else point
         self.color = color
         self.line_length = line_length
         self.num_lines = num_lines

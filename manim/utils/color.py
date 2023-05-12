@@ -457,7 +457,7 @@ def color_to_rgb(color: Color | str) -> np.ndarray:
     elif isinstance(color, Color):
         return np.array(color.get_rgb())
     else:
-        raise ValueError("Invalid color type: " + str(color))
+        raise ValueError(f"Invalid color type: {str(color)}")
 
 
 def color_to_rgba(color: Color | str, alpha: float = 1) -> np.ndarray:
@@ -548,5 +548,4 @@ def get_shaded_rgb(
     factor = 0.5 * np.dot(unit_normal_vect, to_sun) ** 3
     if factor < 0:
         factor *= 0.5
-    result = rgb + factor
-    return result
+    return rgb + factor

@@ -74,9 +74,7 @@ def straight_path(*args) -> PATH_FUNC_TYPE:
                 self.wait()
 
     """
-    if len(args) > 0:
-        return interpolate(*args)
-    return interpolate
+    return interpolate(*args) if args else interpolate
 
 
 def path_along_circles(

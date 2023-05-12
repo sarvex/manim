@@ -80,23 +80,19 @@ class DecimalNumber(VMobject, metaclass=ConvertToOpenGL):
         self.stroke_width = stroke_width
         self.fill_opacity = fill_opacity
 
-        self.initial_config = kwargs.copy()
-        self.initial_config.update(
-            {
-                "num_decimal_places": num_decimal_places,
-                "include_sign": include_sign,
-                "group_with_commas": group_with_commas,
-                "digit_buff_per_font_unit": digit_buff_per_font_unit,
-                "show_ellipsis": show_ellipsis,
-                "unit": unit,
-                "include_background_rectangle": include_background_rectangle,
-                "edge_to_fix": edge_to_fix,
-                "font_size": font_size,
-                "stroke_width": stroke_width,
-                "fill_opacity": fill_opacity,
-            },
-        )
-
+        self.initial_config = kwargs | {
+            "num_decimal_places": num_decimal_places,
+            "include_sign": include_sign,
+            "group_with_commas": group_with_commas,
+            "digit_buff_per_font_unit": digit_buff_per_font_unit,
+            "show_ellipsis": show_ellipsis,
+            "unit": unit,
+            "include_background_rectangle": include_background_rectangle,
+            "edge_to_fix": edge_to_fix,
+            "font_size": font_size,
+            "stroke_width": stroke_width,
+            "fill_opacity": fill_opacity,
+        }
         self._set_submobjects_from_number(number)
         self.init_colors()
 
@@ -165,11 +161,7 @@ class DecimalNumber(VMobject, metaclass=ConvertToOpenGL):
 
         rounded_num = np.round(number, self.num_decimal_places)
         if num_string.startswith("-") and rounded_num == 0:
-            if self.include_sign:
-                num_string = "+" + num_string[1:]
-            else:
-                num_string = num_string[1:]
-
+            num_string = f"+{num_string[1:]}" if self.include_sign else num_string[1:]
         return num_string
 
     def _string_to_mob(self, string: str, mob_class: VMobject | None = None, **kwargs):
@@ -200,8 +192,7 @@ class DecimalNumber(VMobject, metaclass=ConvertToOpenGL):
                 "group_with_commas",
                 "num_decimal_places",
             ]
-        }
-        config.update(kwargs)
+        } | kwargs
         return "".join(
             [
                 "{",

@@ -347,13 +347,12 @@ class ThreeDCamera(Camera):
 
         if fixed_in_frame:
             return points
-        if fixed_orientation:
-            center_func = self.fixed_orientation_mobjects[mobject]
-            center = center_func()
-            new_center = self.project_point(center)
-            return points + (new_center - center)
-        else:
+        if not fixed_orientation:
             return self.project_points(points)
+        center_func = self.fixed_orientation_mobjects[mobject]
+        center = center_func()
+        new_center = self.project_point(center)
+        return points + (new_center - center)
 
     def add_fixed_orientation_mobjects(
         self, *mobjects, use_static_center_func=False, center_func=None

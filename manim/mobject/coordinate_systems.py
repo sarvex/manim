@@ -526,8 +526,7 @@ class CoordinateSystem:
         line_config["stroke_width"] = stroke_width
 
         axis = self.get_axis(index)
-        line = line_func(axis.get_projection(point), point, **line_config)
-        return line
+        return line_func(axis.get_projection(point), point, **line_config)
 
     def get_vertical_line(self, point: Sequence[float], **kwargs) -> Line:
         """A vertical line from the x-axis to a given point in the scene.
@@ -876,21 +875,21 @@ class CoordinateSystem:
 
         if hasattr(graph, "underlying_function"):
             return graph.function(x)
-        else:
-            alpha = binary_search(
-                function=lambda a: self.point_to_coords(graph.point_from_proportion(a))[
-                    0
-                ],
-                target=x,
-                lower_bound=0,
-                upper_bound=1,
+        alpha = binary_search(
+            function=lambda a: self.point_to_coords(graph.point_from_proportion(a))[
+                0
+            ],
+            target=x,
+            lower_bound=0,
+            upper_bound=1,
+        )
+        if alpha is None:
+            raise ValueError(
+                f"x={x} not located in the range of the graph ([{self.p2c(graph.get_start())[0]}, {self.p2c(graph.get_end())[0]}])",
             )
-            if alpha is not None:
-                return graph.point_from_proportion(alpha)
-            else:
-                raise ValueError(
-                    f"x={x} not located in the range of the graph ([{self.p2c(graph.get_start())[0]}, {self.p2c(graph.get_end())[0]}])",
-                )
+
+        else:
+            return graph.point_from_proportion(alpha)
 
     def input_to_graph_coords(self, x: float, graph: ParametricFunction) -> tuple:
         """
@@ -1543,11 +1542,8 @@ class CoordinateSystem:
         if len(labels) > 0:
             max_width = 0.8 * group.dx_line.width
             max_height = 0.8 * group.df_line.height
-            if labels.width > max_width:
-                labels.width = max_width
-            if labels.height > max_height:
-                labels.height = max_height
-
+            labels.width = min(labels.width, max_width)
+            labels.height = min(labels.height, max_height)
         if dx_label is not None:
             group.dx_label.next_to(
                 group.dx_line,
@@ -1796,20 +1792,12 @@ class Axes(VGroup, CoordinateSystem, metaclass=ConvertToOpenGL):
         # it would remove the "0" tick, which is actually 10^0,
         # not the lowest tick on the graph (which is 10^-2).
 
-        if self.x_axis_config.get("scaling") is None or isinstance(
-            self.x_axis_config.get("scaling"), LinearBase
-        ):
-            self.x_axis_config["exclude_origin_tick"] = True
-        else:
-            self.x_axis_config["exclude_origin_tick"] = False
-
-        if self.y_axis_config.get("scaling") is None or isinstance(
-            self.y_axis_config.get("scaling"), LinearBase
-        ):
-            self.y_axis_config["exclude_origin_tick"] = True
-        else:
-            self.y_axis_config["exclude_origin_tick"] = False
-
+        self.x_axis_config["exclude_origin_tick"] = self.x_axis_config.get(
+            "scaling"
+        ) is None or isinstance(self.x_axis_config.get("scaling"), LinearBase)
+        self.y_axis_config["exclude_origin_tick"] = self.y_axis_config.get(
+            "scaling"
+        ) is None or isinstance(self.y_axis_config.get("scaling"), LinearBase)
         self.x_axis = self._create_axis(self.x_range, self.x_axis_config, self.x_length)
         self.y_axis = self._create_axis(self.y_range, self.y_axis_config, self.y_length)
 
@@ -2078,14 +2066,7 @@ class Axes(VGroup, CoordinateSystem, metaclass=ConvertToOpenGL):
         axis_range
             The range of the axis : ``(x_min, x_max, x_step)``.
         """
-        if axis_range[0] > 0:
-            # min greater than 0
-            return axis_range[0]
-        if axis_range[1] < 0:
-            # max less than 0
-            return axis_range[1]
-        else:
-            return 0
+        return axis_range[0] if axis_range[0] > 0 else min(axis_range[1], 0)
 
 
 class ThreeDAxes(Axes):
@@ -2164,13 +2145,9 @@ class ThreeDAxes(Axes):
 
         self.dimension = 3
 
-        if self.z_axis_config.get("scaling") is None or isinstance(
-            self.z_axis_config.get("scaling"), LinearBase
-        ):
-            self.z_axis_config["exclude_origin_tick"] = True
-        else:
-            self.z_axis_config["exclude_origin_tick"] = False
-
+        self.z_axis_config["exclude_origin_tick"] = self.z_axis_config.get(
+            "scaling"
+        ) is None or isinstance(self.z_axis_config.get("scaling"), LinearBase)
         z_axis = self._create_axis(self.z_range, self.z_axis_config, self.z_length)
 
         # [ax.x_min, ax.x_max] used to account for LogBase() scaling
@@ -2622,7 +2599,7 @@ class PolarPlane(Axes):
                 "Invalid azimuth units. Expected one of: PI radians, TAU radians, degrees, gradians or None.",
             )
 
-        if azimuth_direction in ["CW", "CCW"]:
+        if azimuth_direction in {"CW", "CCW"}:
             self.azimuth_direction = azimuth_direction
         else:
             raise ValueError("Invalid azimuth units. Expected one of: CW, CCW.")
@@ -2820,7 +2797,7 @@ class PolarPlane(Axes):
             }
             for i in a_values
         ]
-        if self.azimuth_units == "PI radians" or self.azimuth_units == "TAU radians":
+        if self.azimuth_units in ["PI radians", "TAU radians"]:
             a_tex = [
                 self.get_radian_label(
                     i["label"],
@@ -2903,34 +2880,32 @@ class PolarPlane(Axes):
         elif frac.numerator == 1 and frac.denominator == 1:
             string = constant_label
         elif frac.numerator == 1:
-            if self.azimuth_compact_fraction:
-                string = (
-                    r"\tfrac{" + constant_label + r"}{" + str(frac.denominator) + "}"
-                )
-            else:
-                string = r"\tfrac{1}{" + str(frac.denominator) + "}" + constant_label
+            string = (
+                (r"\tfrac{" + constant_label + r"}{" + str(frac.denominator) + "}")
+                if self.azimuth_compact_fraction
+                else r"\tfrac{1}{" + str(frac.denominator) + "}" + constant_label
+            )
         elif frac.denominator == 1:
             string = str(frac.numerator) + constant_label
 
+        elif self.azimuth_compact_fraction:
+            string = (
+                r"\tfrac{"
+                + str(frac.numerator)
+                + constant_label
+                + r"}{"
+                + str(frac.denominator)
+                + r"}"
+            )
         else:
-            if self.azimuth_compact_fraction:
-                string = (
-                    r"\tfrac{"
-                    + str(frac.numerator)
-                    + constant_label
-                    + r"}{"
-                    + str(frac.denominator)
-                    + r"}"
-                )
-            else:
-                string = (
-                    r"\tfrac{"
-                    + str(frac.numerator)
-                    + r"}{"
-                    + str(frac.denominator)
-                    + r"}"
-                    + constant_label
-                )
+            string = (
+                r"\tfrac{"
+                + str(frac.numerator)
+                + r"}{"
+                + str(frac.denominator)
+                + r"}"
+                + constant_label
+            )
 
         return MathTex(string, font_size=font_size, **kwargs)
 
@@ -3041,7 +3016,7 @@ class ComplexPlane(NumberPlane):
         """
 
         # TODO: Make this work the same as coord_sys.add_coordinates()
-        if len(numbers) == 0:
+        if not numbers:
             numbers = self._get_default_coordinate_values()
 
         self.coordinate_labels = VGroup()

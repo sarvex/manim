@@ -216,12 +216,12 @@ class Surface(VGroup, metaclass=ConvertToOpenGL):
                     self.add(axes, surface_plane)
         """
 
-        ranges = [axes.x_range, axes.y_range, axes.z_range]
-
         if type(colors[0]) is tuple:
             new_colors, pivots = [[i for i, j in colors], [j for i, j in colors]]
         else:
             new_colors = colors
+
+            ranges = [axes.x_range, axes.y_range, axes.z_range]
 
             pivot_min = ranges[axis][0]
             pivot_max = ranges[axis][1]
@@ -306,11 +306,7 @@ class Sphere(Surface):
         v_range=(0, PI),
         **kwargs,
     ):
-        if config.renderer == "opengl":
-            res_value = (101, 51)
-        else:
-            res_value = (24, 12)
-
+        res_value = (101, 51) if config.renderer == "opengl" else (24, 12)
         resolution = resolution if resolution is not None else res_value
 
         self.radius = radius
@@ -528,11 +524,7 @@ class Cone(Surface):
         x, y, z = self.direction
 
         r = np.sqrt(x**2 + y**2 + z**2)
-        if r > 0:
-            theta = np.arccos(z / r)
-        else:
-            theta = 0
-
+        theta = np.arccos(z / r) if r > 0 else 0
         if x == 0:
             if y == 0:  # along the z axis
                 phi = 0
@@ -659,11 +651,7 @@ class Cylinder(Surface):
         x, y, z = self.direction
 
         r = np.sqrt(x**2 + y**2 + z**2)
-        if r > 0:
-            theta = np.arccos(z / r)
-        else:
-            theta = 0
-
+        theta = np.arccos(z / r) if r > 0 else 0
         if x == 0:
             if y == 0:  # along the z axis
                 phi = 0
@@ -938,11 +926,7 @@ class Torus(Surface):
         resolution=None,
         **kwargs,
     ):
-        if config.renderer == "opengl":
-            res_value = (101, 101)
-        else:
-            res_value = (24, 24)
-
+        res_value = (101, 101) if config.renderer == "opengl" else (24, 24)
         resolution = resolution if resolution is not None else res_value
 
         self.R = major_radius

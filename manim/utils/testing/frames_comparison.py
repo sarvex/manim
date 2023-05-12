@@ -150,9 +150,7 @@ def frames_comparison(
 
     # Case where the decorator is called with and without parentheses.
     # If func is None, callabl(None) returns False
-    if callable(func):
-        return decorator_maker(func)
-    return decorator_maker
+    return decorator_maker(func) if callable(func) else decorator_maker
 
 
 def _make_test_comparing_frames(

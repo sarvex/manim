@@ -368,9 +368,7 @@ class OpenGLVMobject(OpenGLMobject):
         return self.get_stroke_opacities()[0]
 
     def get_color(self):
-        if self.has_stroke():
-            return self.get_stroke_color()
-        return self.get_fill_color()
+        return self.get_stroke_color() if self.has_stroke() else self.get_fill_color()
 
     def get_colors(self):
         if self.has_stroke():
@@ -926,11 +924,7 @@ class OpenGLVMobject(OpenGLMobject):
 
         for curve, length in curves_and_lengths:
             if current_length + length >= target_length:
-                if length != 0:
-                    residue = (target_length - current_length) / length
-                else:
-                    residue = 0
-
+                residue = (target_length - current_length) / length if length != 0 else 0
                 return curve(residue)
 
             current_length += length
@@ -987,9 +981,7 @@ class OpenGLVMobject(OpenGLMobject):
         else:
             raise ValueError(f"Point {point} does not lie on this curve.")
 
-        alpha = target_length / total_length
-
-        return alpha
+        return target_length / total_length
 
     def get_anchors_and_handles(self):
         """
@@ -1137,12 +1129,11 @@ class OpenGLVMobject(OpenGLMobject):
         area = np.linalg.norm(area_vect)
         if area > 0:
             return area_vect / area
-        else:
-            points = self.points
-            return get_unit_normal(
-                points[1] - points[0],
-                points[2] - points[1],
-            )
+        points = self.points
+        return get_unit_normal(
+            points[1] - points[0],
+            points[2] - points[1],
+        )
 
     def refresh_unit_normal(self):
         for mob in self.get_family():
@@ -1275,12 +1266,11 @@ class OpenGLVMobject(OpenGLMobject):
         super().interpolate(mobject1, mobject2, alpha, *args, **kwargs)
         if config["use_projection_fill_shaders"]:
             self.refresh_triangulation()
-        else:
-            if self.has_fill():
-                tri1 = mobject1.get_triangulation()
-                tri2 = mobject2.get_triangulation()
-                if len(tri1) != len(tri1) or not np.all(tri1 == tri2):
-                    self.refresh_triangulation()
+        elif self.has_fill():
+            tri1 = mobject1.get_triangulation()
+            tri2 = mobject2.get_triangulation()
+            if False or not np.all(tri1 == tri2):
+                self.refresh_triangulation()
         return self
 
     def pointwise_become_partial(
@@ -1346,7 +1336,7 @@ class OpenGLVMobject(OpenGLMobject):
                 0,
                 upper_residue,
             )
-            new_points[0:i1] = low_tup[0]
+            new_points[:i1] = low_tup[0]
             new_points[i1:i2] = low_tup
             # Keep new_points i2:i3 as they are
             new_points[i3:i4] = high_tup
@@ -1404,7 +1394,7 @@ class OpenGLVMobject(OpenGLMobject):
             points = np.dot(points, z_to_vector(normal_vector))
         indices = np.arange(len(points), dtype=int)
 
-        b0s = points[0::3]
+        b0s = points[::3]
         b1s = points[1::3]
         b2s = points[2::3]
         v01s = b1s - b0s
@@ -1423,10 +1413,10 @@ class OpenGLVMobject(OpenGLMobject):
         # These are the vertices to which we'll apply a polygon triangulation
         inner_vert_indices = np.hstack(
             [
-                indices[0::3],
+                indices[::3],
                 indices[1::3][concave_parts],
                 indices[2::3][end_of_loop],
-            ],
+            ]
         )
         inner_vert_indices.sort()
         rings = np.arange(1, len(inner_vert_indices) + 1)[inner_vert_indices % 3 == 2]
@@ -1666,7 +1656,7 @@ class OpenGLVGroup(OpenGLVMobject):
     """
 
     def __init__(self, *vmobjects, **kwargs):
-        if not all([isinstance(m, OpenGLVMobject) for m in vmobjects]):
+        if not all(isinstance(m, OpenGLVMobject) for m in vmobjects):
             raise Exception("All submobjects must be of type OpenGLVMobject")
         super().__init__(**kwargs)
         self.add(*vmobjects)
@@ -1870,16 +1860,12 @@ class OpenGLDashedVMobject(OpenGLVMobject):
         self.dashed_ratio = dashed_ratio
         self.num_dashes = num_dashes
         super().__init__(color=color, **kwargs)
-        r = self.dashed_ratio
-        n = self.num_dashes
         if num_dashes > 0:
+            r = self.dashed_ratio
+            n = self.num_dashes
             # Assuming total length is 1
             dash_len = r / n
-            if vmobject.is_closed():
-                void_len = (1 - r) / n
-            else:
-                void_len = (1 - r) / (n - 1)
-
+            void_len = (1 - r) / n if vmobject.is_closed() else (1 - r) / (n - 1)
             self.add(
                 *(
                     vmobject.get_subcurve(

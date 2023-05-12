@@ -121,11 +121,7 @@ def _tree_layout(
     parent = {u: root_vertex for u in children[root_vertex]}
     pos = {}
     obstruction = [0.0] * len(T)
-    if orientation == "down":
-        o = -1
-    else:
-        o = 1
-
+    o = -1 if orientation == "down" else 1
     def slide(v, dx):
         """
         Shift the vertex v and its descendants to the right by dx.
@@ -522,7 +518,7 @@ class Graph(VMobject, metaclass=ConvertToOpenGL):
 
         if isinstance(label, (Mobject, OpenGLMobject)):
             label = label
-        elif label is True:
+        elif label:
             label = MathTex(vertex, fill_color=label_fill_color)
         elif vertex in self._labels:
             label = self._labels[vertex]
@@ -637,7 +633,7 @@ class Graph(VMobject, metaclass=ConvertToOpenGL):
 
         graph_center = self.get_center()
         base_positions = {v: graph_center for v in vertices}
-        base_positions.update(positions)
+        base_positions |= positions
         positions = base_positions
 
         if isinstance(labels, bool):
@@ -645,7 +641,7 @@ class Graph(VMobject, metaclass=ConvertToOpenGL):
         else:
             assert isinstance(labels, dict)
             base_labels = {v: False for v in vertices}
-            base_labels.update(labels)
+            base_labels |= labels
             labels = base_labels
 
         if vertex_config is None:
@@ -951,8 +947,8 @@ class Graph(VMobject, metaclass=ConvertToOpenGL):
         """
         if edge not in self.edges:
             edge = edge[::-1]
-            if edge not in self.edges:
-                raise ValueError(f"The graph does not contain a edge '{edge}'")
+        if edge not in self.edges:
+            raise ValueError(f"The graph does not contain a edge '{edge}'")
 
         edge_mobject = self.edges.pop(edge)
 

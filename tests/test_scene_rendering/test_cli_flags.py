@@ -295,26 +295,36 @@ def test_custom_output_name_gif(tmp_path, simple_scenes_path):
         / "videos"
         / "simple_scenes"
         / "480p15"
-        / add_version_before_extension(scene_name + ".gif")
+        / add_version_before_extension(f"{scene_name}.gif")
     )
 
-    assert not wrong_gif_path.exists(), (
-        "The gif file does not respect the custom name: " + custom_name + ".gif"
-    )
+    assert (
+        not wrong_gif_path.exists()
+    ), f"The gif file does not respect the custom name: {custom_name}.gif"
 
     unexpected_mp4_path = (
-        tmp_path / "videos" / "simple_scenes" / "480p15" / str(custom_name + ".mp4")
+        tmp_path
+        / "videos"
+        / "simple_scenes"
+        / "480p15"
+        / str(f"{custom_name}.mp4")
     )
 
-    assert not unexpected_mp4_path.exists(), "Found an unexpected mp4 file at " + str(
-        unexpected_mp4_path
-    )
+    assert (
+        not unexpected_mp4_path.exists()
+    ), f"Found an unexpected mp4 file at {str(unexpected_mp4_path)}"
 
     expected_gif_path = (
-        tmp_path / "videos" / "simple_scenes" / "480p15" / str(custom_name + ".gif")
+        tmp_path
+        / "videos"
+        / "simple_scenes"
+        / "480p15"
+        / str(f"{custom_name}.gif")
     )
 
-    assert expected_gif_path.exists(), "gif file not found at " + str(expected_gif_path)
+    assert (
+        expected_gif_path.exists()
+    ), f"gif file not found at {str(expected_gif_path)}"
 
 
 @pytest.mark.slow
@@ -337,29 +347,39 @@ def test_custom_output_name_mp4(tmp_path, simple_scenes_path):
     assert exit_code == 0, err
 
     wrong_mp4_path = (
-        tmp_path / "videos" / "simple_scenes" / "480p15" / str(scene_name + ".mp4")
+        tmp_path
+        / "videos"
+        / "simple_scenes"
+        / "480p15"
+        / str(f"{scene_name}.mp4")
     )
 
-    assert not wrong_mp4_path.exists(), (
-        "The mp4 file does not respect the custom name: " + custom_name + ".mp4"
-    )
+    assert (
+        not wrong_mp4_path.exists()
+    ), f"The mp4 file does not respect the custom name: {custom_name}.mp4"
 
     unexpected_gif_path = (
         tmp_path
         / "videos"
         / "simple_scenes"
         / "480p15"
-        / add_version_before_extension(custom_name + ".gif")
+        / add_version_before_extension(f"{custom_name}.gif")
     )
-    assert not unexpected_gif_path.exists(), "Found an unexpected gif file at " + str(
-        unexpected_gif_path
-    )
+    assert (
+        not unexpected_gif_path.exists()
+    ), f"Found an unexpected gif file at {str(unexpected_gif_path)}"
 
     expected_mp4_path = (
-        tmp_path / "videos" / "simple_scenes" / "480p15" / str(custom_name + ".mp4")
+        tmp_path
+        / "videos"
+        / "simple_scenes"
+        / "480p15"
+        / str(f"{custom_name}.mp4")
     )
 
-    assert expected_mp4_path.exists(), "mp4 file not found at " + str(expected_mp4_path)
+    assert (
+        expected_mp4_path.exists()
+    ), f"mp4 file not found at {str(expected_mp4_path)}"
 
 
 @pytest.mark.slow
@@ -408,9 +428,9 @@ def test_gif_format_output(tmp_path, manim_cfg_file, simple_scenes_path):
     unexpected_mp4_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.mp4"
     )
-    assert not unexpected_mp4_path.exists(), "unexpected mp4 file found at " + str(
-        unexpected_mp4_path,
-    )
+    assert (
+        not unexpected_mp4_path.exists()
+    ), f"unexpected mp4 file found at {str(unexpected_mp4_path)}"
 
     expected_gif_path = (
         tmp_path
@@ -419,7 +439,9 @@ def test_gif_format_output(tmp_path, manim_cfg_file, simple_scenes_path):
         / "480p15"
         / add_version_before_extension("SquareToCircle.gif")
     )
-    assert expected_gif_path.exists(), "gif file not found at " + str(expected_gif_path)
+    assert (
+        expected_gif_path.exists()
+    ), f"gif file not found at {str(expected_gif_path)}"
 
 
 @pytest.mark.slow
@@ -448,16 +470,16 @@ def test_mp4_format_output(tmp_path, manim_cfg_file, simple_scenes_path):
         / "480p15"
         / add_version_before_extension("SquareToCircle.gif")
     )
-    assert not unexpected_gif_path.exists(), "unexpected gif file found at " + str(
-        unexpected_gif_path,
-    )
+    assert (
+        not unexpected_gif_path.exists()
+    ), f"unexpected gif file found at {str(unexpected_gif_path)}"
 
     expected_mp4_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.mp4"
     )
-    assert expected_mp4_path.exists(), "expected mp4 file not found at " + str(
-        expected_mp4_path,
-    )
+    assert (
+        expected_mp4_path.exists()
+    ), f"expected mp4 file not found at {str(expected_mp4_path)}"
 
 
 @pytest.mark.slow
@@ -490,16 +512,16 @@ def test_videos_not_created_when_png_format_set(
         / "480p15"
         / add_version_before_extension("SquareToCircle.gif")
     )
-    assert not unexpected_gif_path.exists(), "unexpected gif file found at " + str(
-        unexpected_gif_path,
-    )
+    assert (
+        not unexpected_gif_path.exists()
+    ), f"unexpected gif file found at {str(unexpected_gif_path)}"
 
     unexpected_mp4_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.mp4"
     )
-    assert not unexpected_mp4_path.exists(), "expected mp4 file not found at " + str(
-        unexpected_mp4_path,
-    )
+    assert (
+        not unexpected_mp4_path.exists()
+    ), f"expected mp4 file not found at {str(unexpected_mp4_path)}"
 
 
 @pytest.mark.slow
@@ -526,7 +548,9 @@ def test_images_are_created_when_png_format_set(
     assert exit_code == 0, err
 
     expected_png_path = tmp_path / "images" / "simple_scenes" / "SquareToCircle0000.png"
-    assert expected_png_path.exists(), "png file not found at " + str(expected_png_path)
+    assert (
+        expected_png_path.exists()
+    ), f"png file not found at {str(expected_png_path)}"
 
 
 @pytest.mark.slow
@@ -555,7 +579,9 @@ def test_images_are_created_when_png_format_set_for_opengl(
     assert exit_code == 0, err
 
     expected_png_path = tmp_path / "images" / "simple_scenes" / "SquareToCircle0000.png"
-    assert expected_png_path.exists(), "png file not found at " + str(expected_png_path)
+    assert (
+        expected_png_path.exists()
+    ), f"png file not found at {str(expected_png_path)}"
 
 
 @pytest.mark.slow
@@ -584,12 +610,14 @@ def test_images_are_zero_padded_when_zero_pad_set(
     assert exit_code == 0, err
 
     unexpected_png_path = tmp_path / "images" / "simple_scenes" / "SquareToCircle0.png"
-    assert not unexpected_png_path.exists(), "non zero padded png file found at " + str(
-        unexpected_png_path,
-    )
+    assert (
+        not unexpected_png_path.exists()
+    ), f"non zero padded png file found at {str(unexpected_png_path)}"
 
     expected_png_path = tmp_path / "images" / "simple_scenes" / "SquareToCircle000.png"
-    assert expected_png_path.exists(), "png file not found at " + str(expected_png_path)
+    assert (
+        expected_png_path.exists()
+    ), f"png file not found at {str(expected_png_path)}"
 
 
 @pytest.mark.slow
@@ -620,12 +648,14 @@ def test_images_are_zero_padded_when_zero_pad_set_for_opengl(
     assert exit_code == 0, err
 
     unexpected_png_path = tmp_path / "images" / "simple_scenes" / "SquareToCircle0.png"
-    assert not unexpected_png_path.exists(), "non zero padded png file found at " + str(
-        unexpected_png_path,
-    )
+    assert (
+        not unexpected_png_path.exists()
+    ), f"non zero padded png file found at {str(unexpected_png_path)}"
 
     expected_png_path = tmp_path / "images" / "simple_scenes" / "SquareToCircle000.png"
-    assert expected_png_path.exists(), "png file not found at " + str(expected_png_path)
+    assert (
+        expected_png_path.exists()
+    ), f"png file not found at {str(expected_png_path)}"
 
 
 @pytest.mark.slow
@@ -650,16 +680,16 @@ def test_webm_format_output(tmp_path, manim_cfg_file, simple_scenes_path):
     unexpected_mp4_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.mp4"
     )
-    assert not unexpected_mp4_path.exists(), "unexpected mp4 file found at " + str(
-        unexpected_mp4_path,
-    )
+    assert (
+        not unexpected_mp4_path.exists()
+    ), f"unexpected mp4 file found at {str(unexpected_mp4_path)}"
 
     expected_webm_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.webm"
     )
-    assert expected_webm_path.exists(), "expected webm file not found at " + str(
-        expected_webm_path,
-    )
+    assert (
+        expected_webm_path.exists()
+    ), f"expected webm file not found at {str(expected_webm_path)}"
 
 
 @pytest.mark.slow
@@ -687,16 +717,16 @@ def test_default_format_output_for_transparent_flag(
     unexpected_webm_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.webm"
     )
-    assert not unexpected_webm_path.exists(), "unexpected webm file found at " + str(
-        unexpected_webm_path,
-    )
+    assert (
+        not unexpected_webm_path.exists()
+    ), f"unexpected webm file found at {str(unexpected_webm_path)}"
 
     expected_mov_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.mov"
     )
-    assert expected_mov_path.exists(), "expected .mov file not found at " + str(
-        expected_mov_path,
-    )
+    assert (
+        expected_mov_path.exists()
+    ), f"expected .mov file not found at {str(expected_mov_path)}"
 
 
 @pytest.mark.slow
@@ -721,16 +751,16 @@ def test_mov_can_be_set_as_output_format(tmp_path, manim_cfg_file, simple_scenes
     unexpected_webm_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.webm"
     )
-    assert not unexpected_webm_path.exists(), "unexpected webm file found at " + str(
-        unexpected_webm_path,
-    )
+    assert (
+        not unexpected_webm_path.exists()
+    ), f"unexpected webm file found at {str(unexpected_webm_path)}"
 
     expected_mov_path = (
         tmp_path / "videos" / "simple_scenes" / "480p15" / "SquareToCircle.mov"
     )
-    assert expected_mov_path.exists(), "expected .mov file not found at " + str(
-        expected_mov_path,
-    )
+    assert (
+        expected_mov_path.exists()
+    ), f"expected .mov file not found at {str(expected_mov_path)}"
 
 
 @pytest.mark.slow

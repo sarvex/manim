@@ -119,11 +119,14 @@ def make_config_parser(custom_file: str = None) -> configparser.ConfigParser:
 
 
 def _determine_quality(qual: str) -> str:
-    for quality, values in constants.QUALITIES.items():
-        if values["flag"] is not None and values["flag"] == qual:
-            return quality
-
-    return qual
+    return next(
+        (
+            quality
+            for quality, values in constants.QUALITIES.items()
+            if values["flag"] is not None and values["flag"] == qual
+        ),
+        qual,
+    )
 
 
 class ManimConfig(MutableMapping):
@@ -461,10 +464,9 @@ class ManimConfig(MutableMapping):
             )
 
     def __repr__(self) -> str:
-        rep = ""
-        for k, v in sorted(self._d.items(), key=lambda x: x[0]):
-            rep += f"{k}: {v}, "
-        return rep
+        return "".join(
+            f"{k}: {v}, " for k, v in sorted(self._d.items(), key=lambda x: x[0])
+        )
 
     # builders
     def digest_parser(self, parser: configparser.ConfigParser) -> ManimConfig:
@@ -614,25 +616,19 @@ class ManimConfig(MutableMapping):
         else:
             self["frame_width"] = width
 
-        # other logic
-        val = parser["CLI"].get("tex_template_file")
-        if val:
+        if val := parser["CLI"].get("tex_template_file"):
             self.tex_template_file = val
 
-        val = parser["CLI"].get("progress_bar")
-        if val:
+        if val := parser["CLI"].get("progress_bar"):
             setattr(self, "progress_bar", val)
 
-        val = parser["ffmpeg"].get("loglevel")
-        if val:
+        if val := parser["ffmpeg"].get("loglevel"):
             self.ffmpeg_loglevel = val
 
-        val = parser["jupyter"].get("media_width")
-        if val:
+        if val := parser["jupyter"].get("media_width"):
             setattr(self, "media_width", val)
 
-        val = parser["CLI"].get("quality", fallback="", raw=True)
-        if val:
+        if val := parser["CLI"].get("quality", fallback="", raw=True):
             self.quality = _determine_quality(val)
 
         return self
@@ -735,9 +731,7 @@ class ManimConfig(MutableMapping):
         if self["save_last_frame"]:
             self["write_to_movie"] = False
 
-        # Handle the -n flag.
-        nflag = args.from_animation_number
-        if nflag:
+        if nflag := args.from_animation_number:
             self.from_animation_number = nflag[0]
             try:
                 self.upto_animation_number = nflag[1]
@@ -749,14 +743,11 @@ class ManimConfig(MutableMapping):
         # Handle the quality flags
         self.quality = _determine_quality(getattr(args, "quality", None))
 
-        # Handle the -r flag.
-        rflag = args.resolution
-        if rflag:
+        if rflag := args.resolution:
             self.pixel_width = int(rflag[0])
             self.pixel_height = int(rflag[1])
 
-        fps = args.frame_rate
-        if fps:
+        if fps := args.frame_rate:
             self.frame_rate = float(fps)
 
         # Handle --custom_folders
@@ -1127,10 +1118,14 @@ class ManimConfig(MutableMapping):
         """Video quality (-q)."""
         keys = ["pixel_width", "pixel_height", "frame_rate"]
         q = {k: self[k] for k in keys}
-        for qual in constants.QUALITIES:
-            if all([q[k] == constants.QUALITIES[qual][k] for k in keys]):
-                return qual
-        return None
+        return next(
+            (
+                qual
+                for qual in constants.QUALITIES
+                if all(q[k] == constants.QUALITIES[qual][k] for k in keys)
+            ),
+            None,
+        )
 
     @quality.setter
     def quality(self, qual: str) -> None:
@@ -1445,8 +1440,7 @@ class ManimConfig(MutableMapping):
 
         dirs.remove(key)  # a path cannot contain itself
 
-        all_args = {k: self._d[k] for k in dirs}
-        all_args.update(kwargs)
+        all_args = {k: self._d[k] for k in dirs} | kwargs
         all_args["quality"] = f"{self.pixel_height}p{self.frame_rate:g}"
 
         path = self._d[key]
@@ -1455,9 +1449,8 @@ class ManimConfig(MutableMapping):
                 path = path.format(**all_args)
             except KeyError as exc:
                 raise KeyError(
-                    f"{key} {self._d[key]} requires the following "
-                    + "keyword arguments: "
-                    + " ".join(exc.args),
+                    f"{key} {self._d[key]} requires the following keyword arguments: "
+                    + " ".join(exc.args)
                 ) from exc
         return Path(path) if path else None
 
@@ -1543,8 +1536,7 @@ class ManimConfig(MutableMapping):
     def tex_template(self):
         """Template used when rendering Tex.  See :class:`.TexTemplate`."""
         if not hasattr(self, "_tex_template") or not self._tex_template:
-            fn = self._d["tex_template_file"]
-            if fn:
+            if fn := self._d["tex_template_file"]:
                 self._tex_template = TexTemplateFromFile(filename=fn)
             else:
                 self._tex_template = TexTemplateLibrary.default.copy()

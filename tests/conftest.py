@@ -36,13 +36,12 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(config, items):
     if not config.getoption("--skip_slow"):
         return
-    else:
-        slow_skip = pytest.mark.skip(
-            reason="Slow test skipped due to --disable_slow flag.",
-        )
-        for item in items:
-            if "slow" in item.keywords:
-                item.add_marker(slow_skip)
+    slow_skip = pytest.mark.skip(
+        reason="Slow test skipped due to --disable_slow flag.",
+    )
+    for item in items:
+        if "slow" in item.keywords:
+            item.add_marker(slow_skip)
 
 
 @pytest.fixture(scope="session")

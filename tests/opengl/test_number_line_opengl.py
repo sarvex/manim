@@ -21,16 +21,16 @@ def test_decimal_determined_by_step():
     axis = NumberLine(x_range=[-2, 2, 0.5])
     expected_decimal_places = 1
     actual_decimal_places = axis.decimal_number_config["num_decimal_places"]
-    assert actual_decimal_places == expected_decimal_places, (
-        "Expected 1 decimal place but got " + actual_decimal_places
-    )
+    assert (
+        actual_decimal_places == expected_decimal_places
+    ), f"Expected 1 decimal place but got {actual_decimal_places}"
 
     axis2 = NumberLine(x_range=[-1, 1, 0.25])
     expected_decimal_places = 2
     actual_decimal_places = axis2.decimal_number_config["num_decimal_places"]
-    assert actual_decimal_places == expected_decimal_places, (
-        "Expected 1 decimal place but got " + actual_decimal_places
-    )
+    assert (
+        actual_decimal_places == expected_decimal_places
+    ), f"Expected 1 decimal place but got {actual_decimal_places}"
 
 
 def test_decimal_config_overrides_defaults():
@@ -41,9 +41,9 @@ def test_decimal_config_overrides_defaults():
     )
     expected_decimal_places = 0
     actual_decimal_places = axis.decimal_number_config["num_decimal_places"]
-    assert actual_decimal_places == expected_decimal_places, (
-        "Expected 1 decimal place but got " + actual_decimal_places
-    )
+    assert (
+        actual_decimal_places == expected_decimal_places
+    ), f"Expected 1 decimal place but got {actual_decimal_places}"
 
 
 def test_whole_numbers_step_size_default_to_0_decimal_places():
@@ -51,9 +51,9 @@ def test_whole_numbers_step_size_default_to_0_decimal_places():
     axis = NumberLine(x_range=[-2, 2, 1])
     expected_decimal_places = 0
     actual_decimal_places = axis.decimal_number_config["num_decimal_places"]
-    assert actual_decimal_places == expected_decimal_places, (
-        "Expected 1 decimal place but got " + actual_decimal_places
-    )
+    assert (
+        actual_decimal_places == expected_decimal_places
+    ), f"Expected 1 decimal place but got {actual_decimal_places}"
 
 
 def test_add_labels():

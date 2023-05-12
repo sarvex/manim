@@ -118,12 +118,10 @@ def process_pullrequests(lst, cur, github_repo, pr_nums):
             name += " +"
         author_names.append(name)
 
-    reviewer_names = []
-    for reviewer in reviewers:
-        reviewer_names.append(
-            reviewer.name if reviewer.name is not None else reviewer.login,
-        )
-
+    reviewer_names = [
+        reviewer.name if reviewer.name is not None else reviewer.login
+        for reviewer in reviewers
+    ]
     return {
         "authors": sorted(author_names),
         "reviewers": sorted(reviewer_names),
@@ -166,9 +164,7 @@ def get_pr_nums(lst, cur):
 def get_summary(body):
     pattern = '<!--changelog-start-->([^"]*)<!--changelog-end-->'
     try:
-        has_changelog_pattern = re.search(pattern, body)
-        if has_changelog_pattern:
-
+        if has_changelog_pattern := re.search(pattern, body):
             return has_changelog_pattern.group()[22:-21].strip()
     except Exception:
         print(f"Error parsing body for changelog: {body}")
@@ -279,9 +275,7 @@ def main(token, prior, tag, additional, outfile):
 
         pr_by_labels = contributions["PRs"]
         for label in PR_LABELS.keys():
-            pr_of_label = pr_by_labels[label]
-
-            if pr_of_label:
+            if pr_of_label := pr_by_labels[label]:
                 heading = PR_LABELS[label]
                 f.write(f"{heading}\n")
                 f.write("-" * len(heading) + "\n\n")
@@ -292,8 +286,7 @@ def main(token, prior, tag, additional, outfile):
                     title = PR.title
                     label = PR.labels
                     f.write(f"* `#{num} <{url}>`__: {title}\n")
-                    overview = get_summary(PR.body)
-                    if overview:
+                    if overview := get_summary(PR.body):
                         f.write(indent(f"{overview}\n\n", "   "))
                     else:
                         f.write("\n\n")
